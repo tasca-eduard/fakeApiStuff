@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Hubballi&family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    rel="stylesheet" />
+  <title>JSONPlaceholder</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      font-family: 'Montserrat', sans-serif;
+      color: #f0f0f0;
+    }
+
+    body {
+      background: #1d1d1d;
+    }
+
+    .container {
+      max-width: 1440px;
+      width: 100%;
+      background: #141414;
+      padding: 24px;
+      border-radius: 10px;
+      margin: 0 auto;
+      margin-top: 44px;
+    }
+
+    nav {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    button,
+    input {
+      padding: 8px;
+      background: #f0f0f0;
+      border: none;
+      border-left: 8px solid #6b62ec;
+      border-radius: 6px;
+      outline: none;
+      font-weight: 600;
+      transition: .2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    input {
+      color: #141414;
+      margin: 8px 0;
+    }
+
+    button span {
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+      color: #141414;
+    }
+
+    button:hover {
+      border-color: #4a40e0;
+    }
+
+    .article-link {
+      text-decoration: none;
+      display: flex;
+    }
+
+    .article-link:hover article {
+      background: #0f0f0f;
+      border-color: #4a40e0;
+    }
+
+    .article-link:focus-within .content {
+      /* display: none; */
+    }
+
+    .article-link:focus-within form {
+      display: block;
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+    }
+
+    form {
+      background: #141414;
+    }
+
+    form,
+    label {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+    }
+
+    .list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px,1fr));
+      gap: 64px;
+    }
+
+    article {
+      border-left: 8px solid #6b62ec;
+      padding: 16px;
+      transition: .2s;
+      width: 100%;
+      position: relative;
+      animation: .1s fade-in forwards;
+    }
+
+    article form {
+      display: none;
+      padding: 16px;
+      opacity: 0;
+      animation: .1s fade-in forwards;
+    }
+
+    p {
+      line-height: 1.4;
+    }
+
+    small {
+      color: #dfdfdf;
+    }
+
+    ::placeholder {
+      color: #141414;
+    }
+
+    @keyframes fade-in {
+      0% {
+        opacity: 0;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>JSONPlaceholder API</h1>
+    <small>Learning how to use an API</small>
+    <br>
+    <br>
+    <nav>
+      <button onclick="renderPosts()">
+        <span>
+          Get all posts
+        </span>
+      </button>
+      <button onclick="renderUsers()">
+        <span>
+          Get all users
+        </span>
+      </button>
+    </nav>
+    <nav>
+      <form onsubmit="searchPost(event)">
+        <label>
+          <span>Search Post</span>
+          <input 
+            type="search" 
+            name="post" 
+            id="post"
+            placeholder="Find post by title"
+          >
+        </label>
+        <button type="submit">
+          <span>
+            Submit
+          </span>
+        </button>
+      </form>
+      <form onsubmit="searchUser(event)">
+        <label>
+          <span>Search User</span>
+          <input 
+            type="search" 
+            name="user" 
+            id="user"
+            placeholder="Find user by username"
+          >
+        </label>
+        <button type="submit">
+          <span>
+            Submit
+          </span>
+        </button>
+      </form>
+    </nav>
+  </div>
+  <div class="container">
+    <p id="message">Please select a topic</p>
+    <div id="posts" class="list"></div>
+    <div id="users" class="list"></div>
+  </div>
+
+  <script>
+    // messages
+    const NO_ENTITY_ERROR = "There are no <ENTITIES> for this query";
+
+    // api
+    const BASE_API = "https://jsonplaceholder.typicode.com";
+    const POSTS_API = "posts";
+    const USERS_API = "users";
+
+    // DOM
+    const $postList = document.querySelector("#posts");
+    const $userList = document.querySelector("#users");
+    const $message = document.querySelector("#message");
+
+    // api calls
+    async function listPosts(query) {
+      let endpointUrl = `${BASE_API}/${POSTS_API}`;
+
+      if (query) {
+        endpointUrl += `?title=${query}`;
+      }
+
+      const response = await fetch(endpointUrl)
+      const posts = await response.json();
+
+      return posts;
+    }
+
+    async function editPost(id, title) {
+      let endpointUrl = `${BASE_API}/${POSTS_API}/${id}`;
+        const options = {
+          method: "patch",
+          body: JSON.stringify({
+          title: title,
+          
+        })
+      };
+      const response = await fetch(endpointUrl, options);
+    } 
+
+    async function listUsers(query) {
+      let endpointUrl = `${BASE_API}/${USERS_API}`;
+
+      if (query) {
+        endpointUrl += `?username=${query}`;
+      }
+
+      const response = await fetch(endpointUrl)
+      const users = await response.json();
+
+      return users;
+    }
+
+    // rendering
+    async function renderPosts(query) {
+      try {
+        const posts = await listPosts(query);
+        
+        clearLists();
+
+        if (posts.length === 0) {
+          $message.innerHTML = getEntityError("posts");
+        }
+
+        posts.forEach(post => $postList.innerHTML += postCardComponent(post));
+      } catch (error) {
+        console.error("ERROR:", error)
+      }
+    }
+
+    async function renderNewPosts(e) {
+      e.preventDefault();
+      const formData = new FormData(e.target)
+      const postId = formData.get("postId");
+      const postTitle = formData.get("postTitle")
+
+      await editPost(postId, postTitle);
+      renderPosts();
+    }
+
+    async function renderUsers(query) {
+      try {
+        const users = await listUsers(query);
+        
+        clearLists();
+
+        if (users.length === 0) {
+          $message.innerHTML = getEntityError("users");
+        }
+
+        users.forEach(post => $userList.innerHTML += userCardComponent(post));
+      } catch (error) {
+        console.error("ERROR:", error)
+      }
+    }
+
+    // components
+    function postCardComponent(post) {
+      return `
+        <a 
+          class="article-link" 
+          href="#!"
+        >
+          <article>
+            <div class="content">
+              <h2>${post.title}</h2>
+              </br>
+              <p>${post.body}</p>
+              </br>
+              <small>Click to edit</small>
+            </div>
+            <form onsubmit="renderNewPosts(event)">
+              <label>
+                <span>Edit Post</span>
+                <input 
+                  type="text" 
+                  name="postTitle" 
+                  id="postTitle"
+                  placeholder="Edit post title"
+                >
+              </label>
+              <input type="hidden" name="postId" value=${post.id} />
+              <button type="submit">
+                <span>
+                  Edit
+                </span>
+              </button>
+            </form>
+          </article>
+        </a>
+      `
+    }
+
+    function userCardComponent(user) {
+      return `
+        <article>
+          <h2>${user.username}</h2>
+          </br>
+          <p>
+            ${user.name}
+            </br>
+            ${user.email}
+            </br>
+            ${user.phone}
+            </br>
+          </p>
+        </article>
+      `
+    }
+
+    // forms
+    function searchPost(e) {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const postQuery = formData.get("post");
+
+      renderPosts(postQuery)
+    }
+
+    function searchUser(e) {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const postUser = formData.get("user");
+
+      renderUsers(postUser)
+    }
+
+    // utils
+    function clearLists() {
+      $postList.innerHTML = "";
+      $userList.innerHTML = "";
+      $message.innerHTML = "";
+    }
+
+    function getEntityError(entities) {
+      return NO_ENTITY_ERROR.replace("<ENTITIES>", entities);
+    }
+  </script>
+</body>
+</html>
