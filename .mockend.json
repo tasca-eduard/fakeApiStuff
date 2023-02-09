@@ -1,7 +1,7 @@
 {
   "Post": {
     "_": {
-      "items": 10
+      "items": 35
     },
     "cover": {
       "regexp": "https://picsum\\.photos/seed/[0-9]{5}/1920/270"
@@ -14,12 +14,12 @@
     },
     "body": {
       "loremParagraphs": {
-        "minLength": 10,
-        "maxLength": 100
+        "minLength": 50,
+        "maxLength": 150
       }
     },
     "category": {
-      "string": ["one", "two", "three"]
+      "string": ["gaming", "sports", "economics", "crypto", "television", "celebrity"]
     },
     "isDraft": {
       "boolean": {}
@@ -36,22 +36,19 @@
         "max": "2020-12-31T23:59:59Z"
       }
     },
-    "comments": {
-      "hasMany": "Comment"
+    "users": {
+      "belongsTo": "User"
     }
   },
-  "Comment": {
+  "User": {
     "_": {
-      "items": 25
+      "items": 10
     },
     "email": {
       "regexp": "[a-z]{5,10}@[a-z]{5}\\.[a-z]{2,3}"
     },
-    "body": {
-      "loremParagraphs": {
-        "minLength": 10,
-        "maxLength": 100
-      }
+    "username": {
+      "regexp": "[a-z]{5,10}[A-Z]{5}"
     },
     "createdAt": {
       "dateTime": {
@@ -60,7 +57,7 @@
       }
     },
     "post": {
-      "belongsTo": "Post"
+      "hasMany": "Post"
     }
   }
 }
